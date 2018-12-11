@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      class="no-js css-menubar"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ET="http://xmlns.jcp.org/jsf/composite/components"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    <h:head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui"/>
+    <meta name="description" content="Automated KPIs "/>
+    <title>KPI</title>
+    
+    <link rel="apple-touch-icon" href="#{resource['app/assets/images/apple-touch-icon.png']}"/>
+    <link rel="shortcut icon" href="#{resource['app/assets/images/favicon.png']}"/>
+    
+    <h:outputScript library="primefaces" name="jquery/jquery.js" target="head" />
+    <h:outputScript library="primefaces" name="jquery/jquery-plugins.js" target="head" />
+    <h:outputScript library="js" name="jsfcrud.js" target="head" />
+    <h:outputStylesheet name="css/jsfcrud.css"/>
+    
+    <h:outputStylesheet name="app/global/css/bootstrap.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/css/bootstrap-extend.min3f0d.css"/>
+    <h:outputStylesheet name="app/assets/css/site.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/vendor/animsition/animsition.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/vendor/asscrollable/asScrollable.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/vendor/switchery/switchery.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/vendor/intro-js/introjs.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/vendor/slidepanel/slidePanel.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/vendor/waves/waves.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/fonts/material-design/material-design.min3f0d.css"/>
+    <h:outputStylesheet name="app/global/fonts/brand-icons/brand-icons.min3f0d.css"/>
+    <h:outputStylesheet name="app/assets/examples/css/dashboard/v1.min3f0d.css"/>
+    
+    <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,400italic,700'/>
+    
+    <script src="#{resource['app/global/vendor/modernizr/modernizr.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/breakpoints/breakpoints.min.js']}"></script>
+    <style>
+        .ui-accordion-header{
+            font-size: 14px;
+            font-weight: bold;
+            background: #bdd891;
+        }
+    </style>
+    <f:metadata>
+        <f:viewAction action="#{kpiHelper.refreshGraphs()}"/>
+    </f:metadata>
+    </h:head>
+    <h:body>
+    <ET:TopBar/>
+    <ET:NavigationMenu/>
+    <!-- Page -->
+    <div class="page animsition">
+    <div class="page-content">
+        <h:form id="kpiForm">
+      <div class="row">
+          <div class="col-lg-8 col-md-8"> 
+            <div class="panel panel-bordered">
+            <div class="panel-heading">
+              <h3 class="panel-title">Results</h3>
+            </div>
+            <div class="panel-body">
+             <div class="row">
+                 <p:tabView orientation="left" value="#{kpiHelper.cells}" var="cellName">
+        <p:tab title="#{cellName}">                    
+            <p:accordionPanel multiple="true" value="#{kpisController.kpiTypes}" var="kpiType" style="font-size: 14px;">
+            <p:tab title="#{kpiType}">
+                <ui:repeat value="#{kpisController.getKpiList(kpiType)}" var="kpi">
+                    <ui:repeat value="#{kpi.kpiQueriesCollection}" var="kpiQuery">
+                    <div class="row">
+                       
+                    <div class="card">
+                      <div id="chartdiv" style="width: 900px; height: 800px;"></div>
+                      <div class="card-block">
+                      <h4 class="card-title">#{kpi.kpiName}</h4>
+                      </div>
+                    </div>
+                    </div>
+                    </ui:repeat>
+               </ui:repeat>
+            </p:tab>
+            </p:accordionPanel>
+        </p:tab>
+        </p:tabView>
+                
+            </div>
+            </div>
+            </div>
+        </div>  
+        <div class="col-lg-4 col-md-4"> 
+            <div class="panel panel-bordered">
+            <div class="panel-heading">
+              <h3 class="panel-title">Inputs</h3>
+            </div>
+            <div class="panel-body">
+             <div class="row">
+
+
+            </div>
+            </div>
+            </div>
+        </div>
+    </div>
+        </h:form>
+    </div>
+    </div>
+    <!-- End Page -->
+    <ET:Footer/>
+  
+
+    <script src="#{resource['app/global/vendor/bootstrap/bootstrap.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/animsition/animsition.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/asscroll/jquery-asScroll.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/mousewheel/jquery.mousewheel.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/asscrollable/jquery.asScrollable.all.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/ashoverscroll/jquery-asHoverScroll.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/waves/waves.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/switchery/switchery.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/intro-js/intro.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/screenfull/screenfull.min.js']}"></script>
+    <script src="#{resource['app/global/vendor/slidepanel/jquery-slidePanel.min.js']}"></script>
+    <script src="#{resource['app/global/js/core.min.js']}"></script>
+    <script src="#{resource['app/assets/js/site.min.js']}"></script>
+    <script src="#{resource['app/assets/js/sections/menu.min.js']}"></script>
+    <script src="#{resource['app/assets/js/sections/menubar.min.js']}"></script>
+    <script src="#{resource['app/assets/js/sections/gridmenu.min.js']}"></script>
+    <script src="#{resource['app/assets/js/sections/sidebar.min.js']}"></script>
+    <script src="#{resource['app/global/js/configs/config-colors.min.js']}"></script>
+    <script src="#{resource['app/assets/js/configs/config-tour.min.js']}"></script>
+    <script src="#{resource['app/global/js/components/asscrollable.min.js']}"></script>
+    <script src="#{resource['app/global/js/components/animsition.min.js']}"></script>
+    <script src="#{resource['app/global/js/components/slidepanel.min.js']}"></script>
+    <script src="#{resource['app/global/js/components/switchery.min.js']}"></script>
+    <script src="#{resource['app/global/js/components/tabs.min.js']}"></script>
+    
+    <script src="#{resource['app/assets/Chart.js/dist/Chart.min.js']}"></script>
+    <!-- Resources -->
+    <script src="#{resource['app/assets/amcharts4/core.js']}"></script>
+    <script src="#{resource['app/assets/amcharts4/charts.js']}"></script>
+    <script src="#{resource['app/assets/amcharts4/maps.js']}"></script>
+
+    <script>
+       //<![CDATA[
+    Breakpoints();
+    (function(document, window, $) {
+      'use strict';
+
+      var Site = window.Site;
+      $(document).ready(function() {
+        Site.run();
+      });
+    })(document, window, jQuery);
+   
+     //]]>
+  </script>
+    </h:body>
+</html>
+

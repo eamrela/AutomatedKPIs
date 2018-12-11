@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+
+        <p:dialog id="KpisViewDlg" widgetVar="KpisViewDialog" modal="true" resizable="false" appendTo="@(body)" header="#{bundle.ViewKpisTitle}">
+            <h:form id="KpisViewForm">
+                <h:panelGroup id="display">
+                    <p:panelGrid columns="2" rendered="#{kpisController.selected != null}">
+                        <h:outputText value="#{bundle.ViewKpisLabel_kpiType}"/>
+                        <h:outputText value="#{kpisController.selected.kpiType}" title="#{bundle.ViewKpisTitle_kpiType}"/>
+                        <h:outputText value="#{bundle.ViewKpisLabel_kpiName}"/>
+                        <h:outputText value="#{kpisController.selected.kpiName}" title="#{bundle.ViewKpisTitle_kpiName}"/>
+                        <h:outputText value="#{bundle.ViewKpisLabel_id}"/>
+                        <h:outputText value="#{kpisController.selected.id}" title="#{bundle.ViewKpisTitle_id}"/>
+                    </p:panelGrid>
+                    <p:commandButton value="#{bundle.Close}" onclick="KpisViewDialog.hide()"/>
+                </h:panelGroup>
+            </h:form>
+        </p:dialog>
+
+    </ui:composition>
+</html>

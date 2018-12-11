@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+
+        <p:dialog id="KpiQueriesCreateDlg" widgetVar="KpiQueriesCreateDialog" modal="true" resizable="false" appendTo="@(body)" header="#{bundle.CreateKpiQueriesTitle}">
+            <h:form id="KpiQueriesCreateForm">
+                <h:panelGroup id="display">
+                    <p:panelGrid columns="2" rendered="#{kpiQueriesController.selected != null}">
+                        <p:outputLabel value="#{bundle.CreateKpiQueriesLabel_id}" for="id" />
+                        <p:inputText id="id" value="#{kpiQueriesController.selected.id}" title="#{bundle.CreateKpiQueriesTitle_id}" required="true" requiredMessage="#{bundle.CreateKpiQueriesRequiredMessage_id}"/>
+                        <p:outputLabel value="#{bundle.CreateKpiQueriesLabel_queryText}" for="queryText" />
+                        <p:inputText id="queryText" value="#{kpiQueriesController.selected.queryText}" title="#{bundle.CreateKpiQueriesTitle_queryText}" />
+                        <p:outputLabel value="#{bundle.CreateKpiQueriesLabel_queryReplacementString}" for="queryReplacementString" />
+                        <p:inputText id="queryReplacementString" value="#{kpiQueriesController.selected.queryReplacementString}" title="#{bundle.CreateKpiQueriesTitle_queryReplacementString}" />
+                        <p:outputLabel value="#{bundle.CreateKpiQueriesLabel_queryGran}" for="queryGran" />
+                        <p:inputText id="queryGran" value="#{kpiQueriesController.selected.queryGran}" title="#{bundle.CreateKpiQueriesTitle_queryGran}" />
+                        <p:outputLabel value="#{bundle.CreateKpiQueriesLabel_kpiId}" for="kpiId" />
+                        <p:selectOneMenu id="kpiId" value="#{kpiQueriesController.selected.kpiId}" >
+                            <f:selectItems value="#{kpisController.itemsAvailableSelectOne}"
+                                           var="kpiIdItem"
+                                           itemValue="#{kpiIdItem}"/>
+                        </p:selectOneMenu>
+                    </p:panelGrid>
+                    <p:commandButton actionListener="#{kpiQueriesController.create}" value="#{bundle.Save}" update="display,:KpiQueriesListForm:datalist,:growl" oncomplete="handleSubmit(args,'KpiQueriesCreateDialog');"/>
+                    <p:commandButton value="#{bundle.Cancel}" onclick="KpiQueriesCreateDialog.hide()"/>
+                </h:panelGroup>
+            </h:form>
+        </p:dialog>
+
+    </ui:composition>
+</html>
