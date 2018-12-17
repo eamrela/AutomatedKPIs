@@ -6,7 +6,8 @@
       xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:ET="http://xmlns.jcp.org/jsf/composite/components"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
     <h:head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -39,6 +40,11 @@
     
     <script src="#{resource['app/global/vendor/modernizr/modernizr.min.js']}"></script>
     <script src="#{resource['app/global/vendor/breakpoints/breakpoints.min.js']}"></script>
+    
+     <script src="#{resource['app/assets/amcharts4/core.js']}"></script>
+    <script src="#{resource['app/assets/amcharts4/charts.js']}"></script>
+    <script src="#{resource['app/assets/amcharts4/maps.js']}"></script>
+    
     <style>
         .ui-accordion-header{
             font-size: 14px;
@@ -47,7 +53,7 @@
         }
     </style>
     <f:metadata>
-        <f:viewAction action="#{kpiHelper.refreshGraphs()}"/>
+        <!--<f:viewAction action="{kpiHelper.refreshGraphs()}"/>-->
     </f:metadata>
     </h:head>
     <h:body>
@@ -72,14 +78,99 @@
                 <ui:repeat value="#{kpisController.getKpiList(kpiType)}" var="kpi">
                     <ui:repeat value="#{kpi.kpiQueriesCollection}" var="kpiQuery">
                     <div class="row">
-                       
                     <div class="card">
-                      <div id="chartdiv" style="width: 900px; height: 800px;"></div>
+                      <div id="#{cellName}_#{kpi.kpiName}" style="width:100%; height: 400px;"></div>
                       <div class="card-block">
                       <h4 class="card-title">#{kpi.kpiName}</h4>
                       </div>
                     </div>
                     </div>
+                    <script>
+                    var chart = am4core.create("#{cellName}_#{kpi.kpiName}", am4charts.XYChart);
+                    chart.colors.step = 2;
+                    chart.data = #{kpiHelper.fetchKpiJSON(cellName, kpi.kpiName)};
+                    
+                    var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+//                    dateAxis.renderer.minGridDistance = 50;
+                    //-------------------------------- TRIAL
+//                    dateAxis.dateFormats.setKey("minute", "YYYY-MM-dd HH:mm");
+                    dateAxis.tooltipDateFormat = "YYYY-MM-dd HH:mm";
+                    //-------------------------------
+                    // Create series
+                    function createAxisAndSeries(field, name, opposite,) {
+                      var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+                      var series = chart.series.push(new am4charts.LineSeries());
+                      series.dataFields.valueY = field;
+                      series.dataFields.dateX = "date";
+                      series.strokeWidth = 2;
+                      series.yAxis = valueAxis;
+                      series.name = name;
+                      series.tooltipText = "{name}: [bold]{valueY}[/]";
+                      series.tensionX = 0.8;
+                      
+                       var interfaceColors = new am4core.InterfaceColorSet();
+  
+                        switch(bullet) {
+                          case "triangle":
+                            var bullet = series.bullets.push(new am4charts.Bullet());
+                            bullet.width = 12;
+                            bullet.height = 12;
+                            bullet.horizontalCenter = "middle";
+                            bullet.verticalCenter = "middle";
+
+                            var triangle = bullet.createChild(am4core.Triangle);
+                            triangle.stroke = interfaceColors.getFor("background");
+                            triangle.strokeWidth = 2;
+                            triangle.direction = "top";
+                            triangle.width = 12;
+                            triangle.height = 12;
+                            break;
+                          case "rectangle":
+                            var bullet = series.bullets.push(new am4charts.Bullet());
+                            bullet.width = 10;
+                            bullet.height = 10;
+                            bullet.horizontalCenter = "middle";
+                            bullet.verticalCenter = "middle";
+
+                            var rectangle = bullet.createChild(am4core.Rectangle);
+                            rectangle.stroke = interfaceColors.getFor("background");
+                            rectangle.strokeWidth = 2;
+                            rectangle.width = 10;
+                            rectangle.height = 10;
+                            break;
+                          default:
+                            var bullet = series.bullets.push(new am4charts.CircleBullet());
+                            bullet.circle.stroke = interfaceColors.getFor("background");
+                            bullet.circle.strokeWidth = 2;
+                            break;
+                        }
+  
+                      valueAxis.renderer.line.strokeOpacity = 1;
+                      valueAxis.renderer.line.strokeWidth = 2;
+                      valueAxis.renderer.line.stroke = series.stroke;
+                      valueAxis.renderer.labels.template.fill = series.stroke;
+                      valueAxis.renderer.opposite = opposite;
+                      valueAxis.renderer.grid.template.disabled = true;
+
+         
+                    }
+                    
+                     
+                     
+                     
+                     
+//                    createAxisAndSeries("Attempts", "Attempts", false,"circle");
+//                    createAxisAndSeries("RRC_SR", "RRC_SR", true,"triangle");
+                    
+                    chart.legend = new am4charts.Legend();
+                    chart.cursor = new am4charts.XYCursor();
+                    </script>
+                        <!--tootgle--> 
+                        <ui:repeat value="#{kpiHelper.subKPIs}" var="subKPI" varStatus="num">
+                            <script>
+                                createAxisAndSeries("#{subKPI}", "#{subKPI}", false,"circle");
+                            </script>
+                        </ui:repeat>
                     </ui:repeat>
                </ui:repeat>
             </p:tab>
@@ -98,7 +189,56 @@
             </div>
             <div class="panel-body">
              <div class="row">
-
+                 <div class="col-lg-12 col-md-12">
+                    <div class="form-group">
+                    <label class="control-label" for="siteList">Site(s) List "Comma Separated":</label>
+                    <h:inputTextarea id="siteList" class="form-control" 
+                                     value="#{kpiHelper.sitesStr}"/>
+                    </div>
+                    <div class="form-group">
+                    <label class="control-label" for="from">From:</label>
+                    <p:calendar id="from" 
+                                value="#{kpiHelper.from}"
+                                required="true"
+                                styleClass="form-control"
+                                requiredMessage="Date can't be empty">
+                    </p:calendar>
+                    </div>
+                    <div class="form-group">
+                    <label class="control-label" for="to">To:</label>
+                    <p:calendar id="to" 
+                                value="#{kpiHelper.to}"
+                                required="true"
+                                styleClass="form-control"
+                                requiredMessage="Date can't be empty">
+                    </p:calendar>
+                    </div>
+                    <div class="form-group">
+                    <label class="control-label" for="gran">Granularity:</label>
+                    <h:selectOneMenu id="gran"
+                                     value="#{kpiHelper.gran}"
+                                             styleClass="form-control">
+                                <f:selectItem itemLabel="HOURLY" itemValue="HOURLY"/>
+                                <f:selectItem itemLabel="DAILY" itemValue="DAILY"/>
+                    </h:selectOneMenu>
+                    </div>
+                    <div class="form-group">
+                    <label class="control-label" for="type">Breakdown: </label>
+                    <h:selectOneMenu id="type"
+                                     value="#{kpiHelper.type}"
+                                             styleClass="form-control">
+                                <f:selectItem itemLabel="CELL LEVEL" itemValue="CELL"/>
+                                <f:selectItem itemLabel="CLUSTER LEVEL" itemValue="CLUSTER"/>
+                    </h:selectOneMenu>
+                    </div>
+                      <div class="form-group">
+                    <h:commandLink id="createBtn" 
+                                     value="REFRESH"
+                                     class="btn btn-block btn-success waves-effect waves-light"
+                                     action="#{kpiHelper.refreshGraphs}"
+                                     />
+                      </div>
+                 </div>
 
             </div>
             </div>
@@ -139,9 +279,7 @@
     
     <script src="#{resource['app/assets/Chart.js/dist/Chart.min.js']}"></script>
     <!-- Resources -->
-    <script src="#{resource['app/assets/amcharts4/core.js']}"></script>
-    <script src="#{resource['app/assets/amcharts4/charts.js']}"></script>
-    <script src="#{resource['app/assets/amcharts4/maps.js']}"></script>
+   
 
     <script>
        //<![CDATA[
@@ -154,7 +292,13 @@
         Site.run();
       });
     })(document, window, jQuery);
-   
+   function isEven(n) {
+   return n % 2 == 0;
+}
+
+function isOdd(n) {
+   return Math.abs(n % 2) == 1;
+}
      //]]>
   </script>
     </h:body>

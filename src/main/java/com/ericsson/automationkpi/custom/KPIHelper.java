@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
@@ -37,19 +38,46 @@ public class KPIHelper implements Serializable{
     @Inject
     private KpiQueriesController kpiQueriesController;
     
-    private List<String> sites = new ArrayList<String>() {{
-                                                        add("LCAI2010");
-                                                        add("LCAI2011");
-                                                        add("LCAI2012");
-                                                            }};
-    private Date from = DateTime.now().minusHours(10).toDate();
-    private Date to = DateTime.now().toDate();
+    
+    private List<String> sites;
+    private String sitesStr;
+    private Date to;
+    private Date from;
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private String type = "CELL";
-    private String gran = "HOURLY";
+    private String type;
+    private String gran;
     private String condition=null;
     private TreeMap<String,TreeMap<String,TreeMap<String,TreeMap<Date,BigDecimal>>>> kpiResults; // Cell / KPI // sub-kpi / values 
     private List<Object> cells;
+    private List<Object> subKPIs;
+
+    public String getSitesStr() {
+        return sitesStr;
+    }
+
+    public void setSitesStr(String sitesStr) {
+        this.sitesStr = sitesStr;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+    
+    
+
+    public String getGran() {
+        return gran;
+    }
+
+    public void setGran(String gran) {
+        this.gran = gran;
+    }
+    
+    
     
     public EntityManager getEm() {
         return em;
@@ -67,6 +95,15 @@ public class KPIHelper implements Serializable{
         this.sites = sites;
     }
 
+    public List<Object> getSubKPIs() {
+        return subKPIs;
+    }
+
+    public void setSubKPIs(List<Object> subKPIs) {
+        this.subKPIs = subKPIs;
+    }
+
+    
     public Date getFrom() {
         return from;
     }
@@ -116,6 +153,7 @@ public class KPIHelper implements Serializable{
         }
         System.out.println(query);
         //</editor-fold>
+        try{
         //<editor-fold defaultstate="collapsed" desc="Executing and Processing">
         List<Object[]> res = emENIQ.createNativeQuery(query).getResultList();
         Date sampleDate;
@@ -133,6 +171,10 @@ public class KPIHelper implements Serializable{
             }
         }
         //</editor-fold>
+        }catch(Exception e){
+            System.out.println("EXCEPTION");
+            e.printStackTrace();
+        }
     }
     
     public void insertRecord(String cell,String kpiName,Date sample,String subKpi,BigDecimal value){
@@ -159,10 +201,16 @@ public class KPIHelper implements Serializable{
     }
     
     public void refreshGraphs(){
+        if(sitesStr.contains(",")){
+            sites = Arrays.asList(sitesStr.split(","));
+        }else{
+            sites = Arrays.asList(sitesStr);
+        }
         List<KpiQueries> queries = kpiQueriesController.getItems();
         kpiResults = new TreeMap<>();
         for (KpiQueries querie : queries) {
             executeQuery(querie);
+//            break;
         }
         
         
@@ -170,7 +218,37 @@ public class KPIHelper implements Serializable{
     }
     
     public String fetchKpiJSON(String cellName,String kpiName){
+         // Cell / KPI // sub-kpi / values 
         String json = "";
+        String jsonEntry = "";
+        String subKPILeader="";
+        String jsonEntryTemp="";
+        if(kpiResults.containsKey(cellName)){
+            if(kpiResults.get(cellName).containsKey(kpiName)){
+                TreeMap<String,TreeMap<Date,BigDecimal>> res  = kpiResults.get(cellName).get(kpiName);
+                subKPIs = Arrays.asList(res.keySet().toArray());
+                jsonEntry = "{date:DATE_VAL,";
+                for (int i = 0; i < subKPIs.size(); i++) {
+                    if(subKPILeader.length()==0){
+                        subKPILeader = (String) subKPIs.get(i);
+                    }
+                    jsonEntry += subKPIs.get(i)+":"+subKPIs.get(i)+"_VAL,";
+                }
+                jsonEntry = jsonEntry.substring(0,jsonEntry.length()-1)+"}";
+                for (Date sampleDate : res.get(subKPILeader).keySet()) {
+                    jsonEntryTemp = jsonEntry;
+                    jsonEntryTemp = jsonEntryTemp.replaceAll("DATE_VAL", "new Date('"+sampleDate+"')");
+                    for (Object subKPI : subKPIs) {
+                        jsonEntryTemp = jsonEntryTemp.replaceAll(subKPI+"_VAL", getVal(cellName,kpiName,subKPI,sampleDate));
+                    }
+                    json+=jsonEntryTemp+",";
+                }
+            }
+        }
+        if(json.length()>0){
+            json = "["+json.substring(0, json.length()-1)+"]";
+        }
+        
         return json;
     }
 
@@ -180,6 +258,13 @@ public class KPIHelper implements Serializable{
 
     public void setCells(List<Object> cells) {
         this.cells = cells;
+    }
+
+    private String getVal(String cellName, String kpiName, Object subKPI, Date sampleDate) {
+        if(kpiResults.get(cellName).get(kpiName).get(subKPI+"").containsKey(sampleDate)){
+            return kpiResults.get(cellName).get(kpiName).get(subKPI+"").get(sampleDate)+"";
+        }
+        return "0";
     }
     
     
